@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Question {
+  questionUrl  String     @id
+  title        String
+  difficulty   Difficulty
+
+  pattern      String?
+  notes        String?
+  learning     String?
+  priority     Int        @default(0)
+
+  companies    Company[]
+  concepts     Concept[]
+  testQuestions TestQuestion[]
+  patterns     Pattern[]
+
+  createdAt    DateTime   @default(now())
+}
+
+model Company {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+
+  questions Question[] 
+}
+
+model Concept {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+
+  questions Question[] 
+  patterns  Pattern[]
+}
+
+model Test {
+  id               Int      @id @default(autoincrement())
+  title            String
+
+  totalQuestions   Int
+  totalTimeMin     Int
+
+  easyCount        Int
+  mediumCount      Int
+  hardCount        Int
+
+  companies        String[]
+  concepts         String[]
+
+  submitted        Boolean  @default(false)
+  completionTimeMin Int?
+  solvedCount      Int?
+
+  outcome          TestOutcome?
+  overallLearning  String?
+
+  createdAt        DateTime @default(now())
+  submittedAt      DateTime?
+
+  questions        TestQuestion[]
+}
+
+model TestQuestion {
+  id            Int      @id @default(autoincrement())
+  testId        Int
+  questionUrl   String
+
+  orderIndex    Int
+
+  // performance fields
+  solved        Boolean?
+  timeTakenMin Int?
+
+  solution      String?
+  learning      String?
+  mainPoints    String?
+
+  test          Test     @relation(fields: [testId], references: [id])
+  question      Question @relation(fields: [questionUrl], references: [questionUrl])
+}
+
+model StreakDay {
+  date         String   @id        // YYYY-MM-DD
+  totalMinutes Int      @default(0)
+  streakDone   Boolean  @default(false)
+
+  activeStart  DateTime? 
+  updatedAt    DateTime @updatedAt
+}
+
+
+model Pattern {
+  id             Int        @id @default(autoincrement())
+  name           String     @unique
+
+  description    String?
+  howToIdentify  String?
+  relations      String?
+
+  questions      Question[]
+  concepts       Concept[]
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum TestOutcome {
+  SOLVED_IN_TIME
+  SOLVED_AFTER_TIME
+  NOT_SOLVED
+}
