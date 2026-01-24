@@ -643,6 +643,81 @@ router.post("/streak/end", async (req, res) => {
   }
 });
 
+// get streak summary
+router.get("/streak/summary", async (req, res) => {
+  try {
+    const days = await prisma.streakDay.findMany({
+      orderBy: { date: "asc" },
+    });
+
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let runningStreak = 0;
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    for (let i = 0; i < days.length; i++) {
+      if (days[i].streakDone) {
+        runningStreak++;
+        longestStreak = Math.max(longestStreak, runningStreak);
+      } else {
+        runningStreak = 0;
+      }
+    }
+
+    // calculate current streak (ending today or yesterday)
+    for (let i = days.length - 1; i >= 0; i--) {
+      if (!days[i].streakDone) break;
+      currentStreak++;
+    }
+
+    const todayEntry = days.find(d => d.date === today);
+
+    res.json({
+      currentStreak,
+      longestStreak,
+      today: {
+        date: today,
+        totalMinutes: todayEntry?.totalMinutes ?? 0,
+        streakDone: todayEntry?.streakDone ?? false,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Failed to fetch streak summary",
+      details: err.message,
+    });
+  }
+});
+
+// get streak calendar
+router.get("/streak/calendar", async (req, res) => {
+  try {
+    const days = await prisma.streakDay.findMany({
+      orderBy: { date: "asc" },
+    });
+
+    res.json({
+      days: days.map(d => ({
+        date: d.date,
+        totalMinutes: d.totalMinutes,
+        streakDone: d.streakDone,
+        intensity:
+          d.totalMinutes === 0 ? 0 :
+          d.totalMinutes < 30 ? 1 :
+          d.totalMinutes < 60 ? 2 :
+          d.totalMinutes < 90 ? 3 : 4,
+      })),
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Failed to fetch streak calendar",
+      details: err.message,
+    });
+  }
+});
+
+
 // create pattern
 router.post("/patterns", async (req, res) => {
   const { name, description, howToIdentify, relations, concepts = [] } = req.body;
