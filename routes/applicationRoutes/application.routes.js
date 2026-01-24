@@ -440,24 +440,41 @@ router.get("/concepts", async (req, res) => {
 });
 
 // increment question priority
-router.post("/questions/priority/increment", async (req, res) => {
-  const { questionUrl } = req.body;
+router.post("/questions/priority", async (req, res) => {
+  const { questionUrl, action, value } = req.body;
 
-  if (!questionUrl) {
+  if (!questionUrl || !action) {
     return res.status(400).json({
-      error: "questionUrl is required",
+      error: "questionUrl and action are required",
     });
   }
 
   const normalizedUrl = questionUrl.toLowerCase().replace(/\/$/, "");
 
+  let priorityUpdate;
+
+  if (action === "increment") {
+    priorityUpdate = { increment: 1 };
+  } else if (action === "decrement") {
+    priorityUpdate = { decrement: 1 };
+  } else if (action === "set") {
+    if (typeof value !== "number" || value < 0) {
+      return res.status(400).json({
+        error: "value must be a non-negative number for set action",
+      });
+    }
+    priorityUpdate = value;
+  } else {
+    return res.status(400).json({
+      error: "Invalid action. Use increment, decrement, or set",
+    });
+  }
+
   try {
     const updated = await prisma.question.update({
       where: { questionUrl: normalizedUrl },
       data: {
-        priority: {
-          increment: 1,
-        },
+        priority: priorityUpdate,
       },
       select: {
         questionUrl: true,
@@ -466,9 +483,10 @@ router.post("/questions/priority/increment", async (req, res) => {
     });
 
     res.json({
-      message: "Priority incremented successfully",
+      message: "Priority updated successfully",
       questionUrl: updated.questionUrl,
       newPriority: updated.priority,
+      action,
     });
   } catch (err) {
     res.status(404).json({
@@ -477,6 +495,7 @@ router.post("/questions/priority/increment", async (req, res) => {
     });
   }
 });
+
 
 
 // tracking total time spent and streak implementation
@@ -715,6 +734,37 @@ router.get("/patterns/:patternId", async (req, res) => {
   } catch (err) {
     res.status(500).json({
       error: "Failed to fetch pattern",
+      details: err.message,
+    });
+  }
+});
+
+// delete pattern
+router.delete("/patterns/:patternId", async (req, res) => {
+  const { patternId } = req.params;
+
+  try {
+    // 1 Check pattern exists
+    const pattern = await prisma.pattern.findUnique({
+      where: { id: Number(patternId) },
+    });
+
+    if (!pattern) {
+      return res.status(404).json({ error: "Pattern not found" });
+    }
+
+    // 2 Delete pattern (Prisma automatically clears M2M relations)
+    await prisma.pattern.delete({
+      where: { id: Number(patternId) },
+    });
+
+    res.json({
+      message: "Pattern deleted successfully",
+      patternId: Number(patternId),
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Failed to delete pattern",
       details: err.message,
     });
   }
