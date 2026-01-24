@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const cors = require("cors");
 const githubRoutes = require("./routes/githubRoutes/github.routes");
 const appRoutes = require("./routes/applicationRoutes/application.routes");
 
@@ -8,6 +9,11 @@ const express = require("express");
 
 const app = express();
 app.use(express.json());
+app.use(cors({
+  origin: "*",
+  credentials: true,
+}));
+
 const PORT = 4000;
 
 app.get("/env", (req, res) => {
