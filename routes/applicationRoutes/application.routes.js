@@ -323,6 +323,26 @@ router.get("/questions", async (req, res) => {
   }
 });
 
+// get all companies list
+router.get("/companies", async (req, res) => {
+  try {
+    const companies = await prisma.company.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    res.json({ companies });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch companies" });
+  }
+});
+
+
 // get all tests list
 router.get("/tests", async (req, res) => {
   try {
