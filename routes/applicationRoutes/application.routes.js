@@ -496,6 +496,25 @@ router.post("/questions/priority", async (req, res) => {
   }
 });
 
+// adding notes and learning to a questions
+router.patch("/questions/notes-learning", async (req, res) => {
+  const { notes, learning, questionUrl } = req.body;
+
+  try {
+    const updatedQuestion = await prisma.question.update({
+      where: { questionUrl },
+      data: {
+        ...(notes !== undefined && { notes }),
+        ...(learning !== undefined && { learning }),
+      },
+    });
+
+    res.json(updatedQuestion);
+  } catch (err) {
+    res.status(404).json({ message: "Question not found" });
+  }
+});
+
 
 
 // tracking total time spent and streak implementation
