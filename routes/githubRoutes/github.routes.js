@@ -6,7 +6,6 @@ const { Readable } = require("stream");
 const prisma = require("../../prismaClient");
 
 
-
 router.get("/ping", (req, res) => {
     res.json({ message: "GitHub route working" });
 });
