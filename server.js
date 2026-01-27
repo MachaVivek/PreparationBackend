@@ -15,7 +15,7 @@ app.use(cors({
   credentials: true,
 }));
 
-const PORT = 4000;
+
 
 // simple login route
 app.post("/login", (req, res) => {
@@ -31,6 +31,9 @@ app.post("/login", (req, res) => {
 app.use("/github", authMiddleware, githubRoutes);
 app.use("/app", authMiddleware, appRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+
+const PORT = process.env.PORT || 4000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
