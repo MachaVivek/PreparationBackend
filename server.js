@@ -17,20 +17,6 @@ app.use(cors({
 
 const PORT = 4000;
 
-app.get("/env", (req, res) => {
-  const { secret } = req.query;
-
-  if (secret !== "MachaVivek@19") {
-    return res.status(403).json({ error: "Unauthorized" });
-  }
-
-  res.json({
-    DATABASE_URL: process.env.DATABASE_URL,
-    DIRECT_URL: process.env.DIRECT_URL,
-    NODE_ENV: process.env.NODE_ENV,
-  });
-});
-
 // simple login route
 app.post("/login", (req, res) => {
   const { password } = req.body;
