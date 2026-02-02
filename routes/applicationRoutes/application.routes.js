@@ -288,7 +288,7 @@ router.get("/questions", async (req, res) => {
         },
       },
       orderBy: [
-        { priority: "asc" },
+        { priority: "desc" },
         { difficulty: "asc" },
       ],
       take: Number(limit),
